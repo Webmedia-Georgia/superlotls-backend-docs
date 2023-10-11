@@ -41,6 +41,13 @@ https://webmedia-georgia.github.io/superlotls-backend-docs/api.html
 
 ---
 
+## Indexer documentation
+
+Indexer documentation can be found by following this link:
+[Indexer docs](INDEXER.md)
+
+---
+
 ## **Setup & Building Instructions**
 
 ### **1. Prerequisites**
