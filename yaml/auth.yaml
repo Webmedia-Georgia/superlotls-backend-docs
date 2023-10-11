@@ -1,0 +1,1058 @@
+openapi: 3.0.0
+paths:
+  /api/v1/auth/sign-up:
+    post:
+      operationId: AuthController_register
+      summary: ''
+      description: >-
+        This method is responsible for registering a new user in the system.
+
+        1. It first checks the availability of the provided email and username.
+        If either the email or username is already taken, it will throw an
+        error.
+
+        2. If both the email and username are available, it proceeds to create
+        the user in the system.
+
+        3. Upon successful user creation, it sends an email (probably containing
+        a confirmation code) to the newly registered user.
+
+        4. The method concludes by returning a SignUpResponseDTO object, which
+        encapsulates user registration details.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignUpResponseDTO'
+        '409':
+          description: User with provided email already exists
+      tags: &ref_0
+        - Auth Controller
+  /api/v1/auth/email/confirm:
+    post:
+      operationId: AuthController_confirmEmail
+      summary: ''
+      description: >-
+        This method allows users to confirm their email addresses by providing
+        an email confirmation code.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmEmailRequestDTO'
+      responses:
+        '200':
+          description: ''
+        '400':
+          description: Invalid code
+      tags: *ref_0
+  /api/v1/auth/sign-in:
+    post:
+      operationId: AuthController_loginUser
+      summary: ''
+      description: >-
+        This method allows users to log into the system using their credentials.
+
+        1. It starts by retrieving the user based on the provided email or
+        username. If the user doesn't exist, an error is thrown.
+
+        2. If the user exists, it validates the user's entrance, potentially
+        verifying a two-factor authentication (TFA) code.
+
+        3. It then checks the validity of the provided password against the
+        stored password and its associated salt. If the password doesn't match,
+        an error is thrown.
+
+        4. If the validation passes, it generates an access token using JWT for
+        the user.
+
+        5. The method then returns a SignInResponseDTO object, containing the
+        user details and the generated authentication tokens.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInResponseDTO'
+        '400':
+          description: No user with provided data or incorrect password
+        '401':
+          description: 2FA enabled
+        '403':
+          description: Email is not confirmed
+      tags: *ref_0
+  /api/v1/auth/email/request-code:
+    post:
+      operationId: AuthController_requestCode
+      summary: ''
+      description: >-
+        This method sends a confirmation code to the user's email to confirm
+        their email address.
+
+        1. Any past code requests associated with the provided email are updated
+        to ensure they can't be reused.
+
+        2. The user associated with the provided email is retrieved. If no user
+        exists with the given email, an error is thrown.
+
+        3. An email is then sent to the user containing a link, and possibly a
+        code, based on the specified template and email type.
+
+        4. The method ends by returning a RequestCodeResponseDTO object, which
+        contains the date when the code was requested.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestCodeRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestCodeResponseDTO'
+      tags: *ref_0
+  /api/v1/auth/password/request-recovery:
+    post:
+      operationId: AuthController_requestPasswordRecovery
+      summary: ''
+      description: >-
+        This method sends a recovery code to the user's email for password
+        recovery purposes.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestCodeRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestCodeResponseDTO'
+      tags: *ref_0
+  /api/v1/auth/password/recovery:
+    post:
+      operationId: AuthController_passwordRecovery
+      summary: ''
+      description: >-
+        This method allows users to recover their password using a provided
+        recovery code.
+
+        1. It first checks the provided recovery code for validity. If the code
+        is invalid or expired, an error is thrown.
+
+        2. If the code is valid, the user's password is encrypted and updated in
+        the database.
+
+        3. Past code requests, if any, are then updated to prevent them from
+        being used again.
+
+        4. The method concludes by returning a PasswordRecoveryResponseDTO
+        object, indicating the operation's status.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordRecoveryRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordRecoveryResponseDTO'
+        '400':
+          description: Invalid confirmation code
+      tags: *ref_0
+  /api/v1/auth/2fa/activate:
+    post:
+      operationId: AuthController_activate2FA
+      summary: ''
+      description: >-
+        This method is for users who want to activate 2-factor authentication
+        for added security.
+
+        1. It validates the provided 2FA token against the given secret.
+
+        2. If the validation succeeds, the user's record is updated to store the
+        2FA secret and set their authentication type to 2FA.
+
+        3. The method then returns an Activate2FAResponseDTO object, signaling
+        successful 2FA activation.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Activate2FARequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activate2FAResponseDTO'
+        '401':
+          description: Incorrect 2FA code
+      tags: *ref_0
+  /api/v1/auth/2fa/deactivate:
+    post:
+      operationId: AuthController_deactivate2FA
+      summary: ''
+      description: >-
+        This method allows users to deactivate their previously activated
+        2-factor authentication.
+
+        1. It retrieves the user's details from the database.
+
+        2. The provided 2FA token is validated against the user's stored 2FA
+        secret. If it's invalid, an error is thrown.
+
+        3. If the token is valid, the user's record is updated to nullify the
+        2FA secret and set their authentication type to none.
+
+        4. The method concludes by returning a Deactivate2FAResponseDTO object,
+        indicating the successful deactivation of 2FA.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Deactivate2FARequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deactivate2FAResponseDTO'
+        '401':
+          description: Incorrect 2FA code
+      tags: *ref_0
+  /api/v1/auth/wallet:
+    post:
+      operationId: AuthController_authWithWallet
+      summary: ''
+      description: >-
+        This method allows users to authenticate using their wallet.
+
+        1. The nonce previously stored is verified with the one provided in the
+        WalletRequestDTO to ensure the integrity of the connection request.
+
+        2. It checks if a user with the given wallet address exists. If not, it
+        creates a new user.
+
+        3. A JSON web token (JWT) is then generated for the user, ensuring they
+        are properly authenticated.
+
+        4. The method concludes by returning a WalletSignInResponseDTO object,
+        containing user details and the generated authentication tokens.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletSignInResponseDTO'
+        '400':
+          description: Invalid request fields
+        '403':
+          description: No confirmation nonce
+        '422':
+          description: Incorrect wallet signature or message
+      tags: *ref_0
+  /api/v1/auth/nonce:
+    get:
+      operationId: AuthController_getNonce
+      summary: ''
+      description: >-
+        This method provides a nonce, a random one-time number, for certain
+        authentication purposes.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags: *ref_0
+  /api/v1/auth/profile/me:
+    get:
+      operationId: ProfileController_getMe
+      summary: ''
+      description: >-
+        Allows authenticated users to change their passwords. After verifying
+        the user's credentials, it updates the user's password in the database.
+
+        Fetches a user's data, including their settings, from the database.
+        Additionally, it retrieves associated user groups based on the user's
+        wallet address. The combined data is then returned as a GetMeResponseDTO
+        object.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMeResponseDTO'
+        '401':
+          description: Unauthorized
+      tags: &ref_1
+        - Profile Controller
+      security:
+        - bearer: []
+  /api/v1/auth/profile/change-password:
+    post:
+      operationId: ProfileController_changePassword
+      summary: ''
+      description: >-
+        Allows authenticated users to change their passwords. After verifying
+        the user's credentials, it updates the user's password in the database.
+
+        After fetching the user's details using their userId, it verifies the
+        provided current password. If validated, the user's password is changed
+        to the new one, and a new JWT access token is generated and returned
+        encapsulated in a ChangePasswordResponseDTO object.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangePasswordResponseDTO'
+        '400':
+          description: Invalid user password
+        '401':
+          description: Unauthorized
+      tags: *ref_1
+      security:
+        - bearer: []
+  /api/v1/auth/profile/email/change:
+    post:
+      operationId: ProfileController_requestEmailChange
+      summary: ''
+      description: >-
+        Allows authenticated users to request a change in their email. It
+        initializes the email change request which might involve sending an
+        email verification or other related processes.
+
+        Retrieves the user's details using their userId and then validates the
+        provided current password. If successful, the email address is updated
+        in the database and a confirmation email is sent to the new email
+        address. Finally, a ChangeEmailResponseDTO object is returned indicating
+        the operation's status.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeEmailRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangeEmailResponseDTO'
+        '401':
+          description: Unauthorized
+      tags: *ref_1
+      security:
+        - bearer: []
+  /api/v1/auth/profile/email/set:
+    post:
+      operationId: ProfileController_setEmail
+      summary: ''
+      description: >-
+        This method enables authenticated users to set or update their email
+        addresses. Useful in scenarios where the user hasn't set an email during
+        registration or wants to change it.
+
+        Validates the provided email to ensure it's not taken, then sends an
+        email to the provided address likely for confirmation. Updates the
+        user's password, email, and other related fields in the database.
+        Finally, it returns a status indicating the email was successfully set,
+        encapsulated in a SetEmailResponseDTO object.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetEmailRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetEmailResponseDTO'
+        '409':
+          description: User with provided email already exists
+      tags: *ref_1
+  /api/v1/auth/profile:
+    put:
+      operationId: ProfileController_updateUserData
+      summary: ''
+      description: >-
+        Protected by the JwtAuthGuard, this method allows users to update their
+        profile details. It can also handle the uploading of multiple files,
+        likely used for profile images or other media.
+
+        Allows users to update their personal details and settings. If a new
+        image or file is provided, it uploads the file and updates the user's
+        database record with the new file's path. Also handles user settings as
+        a special case, ensuring they are updated correctly. Finally, it returns
+        the updated user's details as a GetMeResponseDTO object.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMeResponseDTO'
+        '401':
+          description: Unauthorized
+      tags: *ref_1
+      security:
+        - bearer: []
+  /api/v1/auth/profile/wallet:
+    post:
+      operationId: ProfileController_connectWallet
+      summary: ''
+      description: >-
+        Allows authenticated users to connect their wallets. This might involve
+        authenticating a cryptocurrency or digital wallet for the user profile.
+
+        Verifies the validity of the provided nonce and checks if the wallet
+        address is available. Once validated, it updates the user's database
+        record with the provided wallet address and its provider. It then
+        returns a message indicating successful wallet connection encapsulated
+        in a ConnectWalletResponseDTO object.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConnectWalletRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectWalletResponseDTO'
+        '400':
+          description: ''
+      tags: *ref_1
+  /api/v1/auth/profile/banner:
+    delete:
+      operationId: ProfileController_deleteBannerImage
+      summary: ''
+      description: >-
+        Protected by the JwtAuthGuard, this method lets users delete their
+        banner image, probably used in their profile or dashboard.
+
+        Deletes the user's banner image by updating the database record to set
+        the banner image to null. Returns a status indicating successful banner
+        image deletion encapsulated in a DeleteUserBannerResponseDTO object.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteUserBannerResponseDTO'
+      tags: *ref_1
+  /api/v1/auth/profile/whitelist:
+    post:
+      operationId: ProfileController_uploadWhitelist
+      summary: ''
+      description: >-
+        Allows the uploading of a whitelist, likely a list of approved or
+        recognized items (e.g., email addresses, domains, or IP addresses). The
+        provided groupId could be used to categorize or label the whitelist.
+
+        Parses the provided CSV file to extract wallet addresses. It then cleans
+        up the database by removing any outdated or redundant entries related to
+        the given group ID. Afterward, it prepares the new whitelist data and
+        saves it into the database. Each address from the CSV is associated with
+        the provided group ID during the save operation.
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags: *ref_1
+info:
+  title: niftables-backend
+  description: Backend for Superlotls project
+  version: 0.0.1
+  contact: {}
+tags: []
+servers: []
+components:
+  securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+      description: |2-
+
+              API available only for users authorized on web site:
+              
+              https://niftables-frontend-git-develop-igorverhusha.vercel.app/
+
+              Authorization flow goes through old backend
+  schemas:
+    SignUpRequestDTO:
+      type: object
+      properties:
+        email:
+          type: string
+          description: User email
+        password:
+          type: string
+          description: User password
+        username:
+          type: string
+          description: User name
+      required:
+        - email
+        - password
+        - username
+    SignUpResponseUserDTO:
+      type: object
+      properties:
+        role:
+          type: string
+          enum:
+            - user
+            - admin
+          description: User role
+        userName:
+          type: string
+          description: User name
+        email:
+          type: string
+          description: User email
+        projectId:
+          type: number
+          description: Project id
+        createdAt:
+          type: string
+          description: Registration date
+        updatedAt:
+          type: string
+          description: Last profile modification date
+        isEmailConfirmed:
+          type: boolean
+          description: Confirmed email or not (false after registration)
+          default: false
+      required:
+        - role
+        - userName
+        - email
+        - projectId
+        - createdAt
+        - updatedAt
+        - isEmailConfirmed
+    SignUpResponseDTO:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/SignUpResponseUserDTO'
+      required:
+        - user
+    ConfirmEmailRequestDTO:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Confirmation code
+      required:
+        - code
+    SignInRequestDTO:
+      type: object
+      properties:
+        emailOrUsername:
+          type: string
+          description: User email or user name
+        password:
+          type: string
+          description: User password
+        tfaCode:
+          type: string
+          description: 2FA code
+      required:
+        - emailOrUsername
+        - password
+        - tfaCode
+    SignInAuthResponseDTO:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token
+        refreshToken:
+          type: string
+          description: JWT refresh token
+      required:
+        - accessToken
+        - refreshToken
+    SignInResponseDTO:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/SignUpResponseUserDTO'
+        auth:
+          $ref: '#/components/schemas/SignInAuthResponseDTO'
+      required:
+        - user
+        - auth
+    RequestCodeRequestDTO:
+      type: object
+      properties:
+        email:
+          type: string
+          description: User email where should send code
+      required:
+        - email
+    RequestCodeResponseDTO:
+      type: object
+      properties:
+        date:
+          type: string
+          description: Date when next request available
+      required:
+        - date
+    PasswordRecoveryRequestDTO:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Recovery code
+        password:
+          type: string
+          description: New password
+      required:
+        - code
+        - password
+    PasswordRecoveryResponseDTO:
+      type: object
+      properties:
+        status:
+          type: number
+          description: OK
+      required:
+        - status
+    Activate2FARequestDTO:
+      type: object
+      properties:
+        secret:
+          type: string
+          description: Secret key for authentificator
+        tfaCode:
+          type: string
+          description: 2FA code
+      required:
+        - secret
+        - tfaCode
+    Activate2FAResponseDTO:
+      type: object
+      properties:
+        status:
+          type: number
+          description: OK
+      required:
+        - status
+    Deactivate2FARequestDTO:
+      type: object
+      properties:
+        tfaCode:
+          type: string
+          description: 2FA code
+      required:
+        - tfaCode
+    Deactivate2FAResponseDTO:
+      type: object
+      properties:
+        status:
+          type: number
+          description: OK
+      required:
+        - status
+    WalletRequestDTO:
+      type: object
+      properties:
+        message:
+          type: string
+          description: SIWE message
+        signature:
+          type: string
+          description: SIWE signature
+        walletProvider:
+          type: string
+          description: Use wallet provider
+          enum:
+            - metamask
+            - coinbase
+            - walletConnect
+      required:
+        - message
+        - signature
+        - walletProvider
+    WalletUserResponseDTO:
+      type: object
+      properties:
+        email:
+          type: string
+        userName:
+          type: string
+        walletAddress:
+          type: string
+      required:
+        - email
+        - userName
+        - walletAddress
+    WalletAuthResponseDTO:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+      required:
+        - accessToken
+        - refreshToken
+    WalletSignInResponseDTO:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/WalletUserResponseDTO'
+        auth:
+          $ref: '#/components/schemas/WalletAuthResponseDTO'
+      required:
+        - user
+        - auth
+    SettingsItem:
+      type: object
+      properties:
+        email:
+          type: boolean
+        platform:
+          type: boolean
+      required:
+        - email
+        - platform
+    UserSettingsDTO:
+      type: object
+      properties:
+        notifyOnBidActivity:
+          description: Should nofify user on bid activity
+          allOf:
+            - $ref: '#/components/schemas/SettingsItem'
+        notifyOnDrops:
+          description: Should nofify user on drops
+          allOf:
+            - $ref: '#/components/schemas/SettingsItem'
+        notifyOnOutBid:
+          description: Should nofify user on out bid
+          allOf:
+            - $ref: '#/components/schemas/SettingsItem'
+        notifyOnPacks:
+          description: Should nofify user on packs
+          allOf:
+            - $ref: '#/components/schemas/SettingsItem'
+        notifyOnRevealNft:
+          description: Should nofify user on reveal nft
+          allOf:
+            - $ref: '#/components/schemas/SettingsItem'
+        notifyOnSubscriptions:
+          description: Should nofify user on subscription
+          allOf:
+            - $ref: '#/components/schemas/SettingsItem'
+        notifyOnSuccessfulPurchase:
+          description: Should nofify user on purchase
+          allOf:
+            - $ref: '#/components/schemas/SettingsItem'
+      required:
+        - notifyOnBidActivity
+        - notifyOnDrops
+        - notifyOnOutBid
+        - notifyOnPacks
+        - notifyOnRevealNft
+        - notifyOnSubscriptions
+        - notifyOnSuccessfulPurchase
+    UserGroupsDTO:
+      type: object
+      properties:
+        groupId:
+          type: string
+        priceUsd:
+          type: number
+        amount:
+          type: number
+        fromDateTime:
+          type: string
+        toDateTime:
+          type: string
+        name:
+          type: string
+      required:
+        - groupId
+        - priceUsd
+        - amount
+        - fromDateTime
+        - toDateTime
+        - name
+    GetMeResponseDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          description: User ID
+        email:
+          type: string
+          description: User email
+        isEmailConfirmed:
+          type: boolean
+          description: Did user activate email or not
+        role:
+          type: string
+          description: User Role
+          enum:
+            - user
+            - admin
+        userName:
+          type: string
+          description: User name
+        projectId:
+          type: number
+          description: User project ID
+        authType:
+          type: string
+          description: Authentication type
+          enum:
+            - none
+            - 2fa
+        walletAddress:
+          type: string
+          description: User wallet address
+        walletProvider:
+          type: string
+          description: User wallet provider
+        image:
+          type: string
+          description: User image
+        twoFaSecretKey:
+          type: string
+        bannerImage:
+          type: string
+          description: User banner imae
+        bio:
+          type: string
+          description: User bio
+        displayName:
+          type: string
+          description: Displayed name
+        passwordChangedAt:
+          type: string
+          description: Last password change
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        userSettings:
+          $ref: '#/components/schemas/UserSettingsDTO'
+        userGroups:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserGroupsDTO'
+      required:
+        - id
+        - email
+        - isEmailConfirmed
+        - role
+        - userName
+        - projectId
+        - authType
+        - walletAddress
+        - walletProvider
+        - image
+        - twoFaSecretKey
+        - bannerImage
+        - bio
+        - displayName
+        - passwordChangedAt
+        - createdAt
+        - updatedAt
+        - userSettings
+        - userGroups
+    ChangePasswordRequestDTO:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+          description: Current user password
+        newPassword:
+          type: string
+          description: New user password
+      required:
+        - currentPassword
+        - newPassword
+    ChangePasswordAuthDTO:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: Access token
+        refreshToken:
+          type: string
+          description: Refresh token
+      required:
+        - accessToken
+        - refreshToken
+    ChangePasswordResponseDTO:
+      type: object
+      properties:
+        auth:
+          $ref: '#/components/schemas/ChangePasswordAuthDTO'
+      required:
+        - auth
+    ChangeEmailRequestDTO:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+          description: Current user password
+        newEmail:
+          type: string
+          description: New email
+      required:
+        - currentPassword
+        - newEmail
+    ChangeEmailResponseDTO:
+      type: object
+      properties:
+        status:
+          type: number
+          description: Ok
+      required:
+        - status
+    SetEmailRequestDTO:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+    SetEmailResponseDTO:
+      type: object
+      properties:
+        status:
+          type: number
+      required:
+        - status
+    UpdateUserRequestDTO:
+      type: object
+      properties:
+        displayName:
+          type: string
+          description: Displayed name
+        bio:
+          type: string
+          description: User bio description
+        userName:
+          type: string
+        userSettings:
+          type: object
+      required:
+        - displayName
+        - bio
+        - userName
+        - userSettings
+    ConnectWalletRequestDTO:
+      type: object
+      properties:
+        message:
+          type: string
+          description: SIWE message
+        signature:
+          type: string
+          description: SIWE signature
+        walletProvider:
+          type: object
+          description: Use wallet provider
+      required:
+        - message
+        - signature
+        - walletProvider
+    ConnectWalletResponseDTO:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+    DeleteUserBannerResponseDTO:
+      type: object
+      properties:
+        status:
+          type: number
+      required:
+        - status

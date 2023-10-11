@@ -1,0 +1,957 @@
+openapi: 3.0.0
+paths:
+  /api/v1/core-api/rates/exchange:
+    post:
+      operationId: RatesController_exchange
+      summary: ''
+      description: >-
+        Handles currency exchange-related operations, particularly concerning
+        Ethereum (ETH) to US Dollar (USD) conversions. (rates from
+        coinmarketcup)
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExchangeRequestDto'
+      responses:
+        '200':
+          description: USD amount after converting
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExchangeResponseDTO'
+        '500':
+          description: Have to provide amount for converting
+      tags:
+        - Rates Controller
+  /api/v1/core-api/nfts:
+    get:
+      operationId: NftsController_getListNfts
+      summary: ''
+      description: >-
+        An authenticated user can fetch a list of NFTs (Non-Fungible Tokens)
+        based on specified query parameters.
+
+        1. Fetches a list of NFTs (Non-Fungible Tokens) for the specified user
+        based on the given sort order and storage filter.
+
+        2. The method checks the reveal date for the metadata associated with
+        the NFTs.
+      parameters:
+        - name: sort
+          required: true
+          in: query
+          schema:
+            default: ASC
+            enum:
+              - ASC
+              - DESC
+            type: string
+        - name: storage
+          required: false
+          in: query
+          schema:
+            enum:
+              - PLATFORM
+              - WALLET
+            type: string
+      responses:
+        '200':
+          description: Array of NFT entities
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetListNftsResponseDTO'
+      tags: &ref_0
+        - NFTs Controller
+  /api/v1/core-api/nfts/{id}:
+    get:
+      operationId: NftsController_getNftById
+      summary: ''
+      description: >-
+        Fetches the details of a specific NFT based on the provided identifier
+        (id).
+
+        1. Retrieves details for a specific NFT based on the provided identifier
+        (id).
+
+        2. If the NFT is not found, a NotFoundException is thrown.
+
+        3. The method also fetches details about the owner of the NFT and checks
+        the metadata reveal date for the NFT.
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: NFT ID
+          schema:
+            type: number
+      responses:
+        '200':
+          description: NFT entity with owner information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetNftByIdResponseDTO'
+        '404':
+          description: NFT with provided ID was not found
+      tags: *ref_0
+  /api/v1/core-api/payments/mint-status:
+    get:
+      operationId: PaymentsController_getMintStatus
+      summary: ''
+      description: >-
+        Retrieves the mint status, potentially taking into account the user's ID
+        and associated user groups.
+
+        This method checks the minting status at the current time. It verifies
+        whether all items are sold out. If they are, it returns the sold-out
+        status. If not, it determines the current minting stage. For public
+        minting stages, it provides a default minting limit. If the stage isn't
+        public or if there's no associated group ID, it indicates that minting
+        is not currently allowed. For other stages and valid group IDs, it
+        checks the minting time window for the associated group and calculates
+        the minting limit based on that group's configuration.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMintStatusResponseDTO'
+      tags: &ref_1
+        - Payments Controller
+  /api/v1/core-api/payments/prepare:
+    get:
+      operationId: PaymentsController_preparePayment
+      summary: ''
+      description: >-
+        Get NFT price in ETH and USD for current user, available for buying
+        amount and precalculates fee amount for buying.
+
+        The method first checks if the user is eligible to mint based on their
+        ID and group ID. If minting is not possible, it throws an error. If
+        minting is allowed, it fetches the price details for the specific group
+        or falls back to public sale rates. It then determines the user's
+        previous minting activities to calculate the number of NFTs they can
+        still mint. The method returns details such as available NFTs for
+        minting, current prices in both USD and ETH, and any associated fees.
+      parameters: []
+      responses:
+        '200':
+          description: Price for NFT, available amount, ETH price and fees
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreparePaymentResponseDTO'
+        '404':
+          description: >-
+            User does's not have payments or price group entity for
+            {user.groupId} does's not exist
+        '422':
+          description: User can't buy more NFT's for his group
+      tags: *ref_1
+  /api/v1/core-api/payments/request:
+    post:
+      operationId: PaymentsController_requestPayment
+      summary: ''
+      description: >-
+        Initiates a NFT payment request with provided details such as address,
+        amount, and type of payment. The user's ID and associated user groups
+        may also be considered.
+
+        1. Checks the number of NFTs already minted and ensures that the total
+        NFTs minted, including the current request, don't exceed a specific
+        threshold.
+
+        2. Calculates the total cost for the requested NFTs.
+
+        3. Initiates a transaction and inserts it into the payments repository
+        with a "pending" status.
+
+        4. Returns details such as available NFTs after the current request,
+        transaction ID, and total amount.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestPaymentRequestDTO'
+      responses:
+        '200':
+          description: >-
+            Transaction ID and price for full amount of requested NFT's
+            including fees
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestPaymentResponseDTO'
+        '404':
+          description: >-
+            User does's not have payments or price group entity for
+            {user.groupId} does's not exist
+        '422':
+          description: User can't buy more NFT's for his group
+      tags: *ref_1
+  /api/v1/core-api/payments/confirm:
+    post:
+      operationId: PaymentsController_confirmPayment
+      summary: ''
+      description: >-
+        Finalizes a NFT payment that has been previously set up by confirming
+        the associated transaction. The action takes the user's ID and a
+        specific transaction ID into account.
+
+        1. Verifies the existence of a user's transaction.
+
+        2. Updates the payment status to "approved".
+
+        3. Returns the transaction ID and a success indicator.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmPaymentRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfirmPaymentResponseDTO'
+        '404':
+          description: User does's not have transaction with provided ID
+      tags: *ref_1
+  /api/v1/core-api/payments/reject:
+    post:
+      operationId: PaymentsController_rejectPayment
+      summary: ''
+      description: >-
+        Cancels a NFT payment that has been previously set up by rejecting the
+        associated transaction. The action is based on the user's ID and a
+        specific transaction ID.
+
+        1. Verifies the existence of a user's transaction.
+
+        2. Updates the payment status to "failed".
+
+        3. Returns the transaction ID and a success indicator.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RejectPaymentRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RejectPaymentResponseDTO'
+        '404':
+          description: User does's not have transaction with provided ID
+      tags: *ref_1
+  /api/v1/core-api/moonpay/signature:
+    post:
+      operationId: SharedMoonpayController_getSignature
+      summary: ''
+      description: >-
+        Generates a signature for the provided originalUrl.
+
+        1. This method uses the crypto library to create a HMAC (Hash-based
+        Message Authentication Code) with the SHA256 hash function. It uses the
+        MOONPAY.SECRET_KEY as the secret key for the HMAC.
+
+        2. It then updates the HMAC with the search part of the provided
+        originalUrl (i.e., the query string).
+
+        3. Finally, it computes the HMAC digest in the Base64 format.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetSignatureRequestDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetSignatureResponseDto'
+      tags:
+        - Moonpay Controller
+  /api/v1/core-api/collections:
+    get:
+      operationId: CollectionsController_getCollections
+      summary: ''
+      description: >-
+        Retrieves multiple collections based on the provided query parameters.
+        The nature of the query might dictate things like pagination or
+        filtering. Once the collections are fetched, they are returned as a
+        GetCollectionsResponseDTO object.
+
+        Retrieves multiple collections from the database, sorted based on the
+        createdAt attribute in the order specified in the query. For each
+        collection, it calculates the total number of NFTs minted and returns a
+        list of collection details, each including the percentage of NFTs minted
+        and its minting schedule. The resulting list is wrapped in a
+        GetCollectionsResponseDTO object.
+      parameters:
+        - name: sort
+          required: true
+          in: query
+          schema:
+            default: ASC
+            enum:
+              - ASC
+              - DESC
+            type: string
+      responses:
+        '200':
+          description: List of collection entitys
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCollectionsResponseDTO'
+      tags: &ref_2
+        - Collections controller
+  /api/v1/core-api/collections/{id}:
+    get:
+      operationId: CollectionsController_getCollectionById
+      summary: ''
+      description: >-
+        Fetches a single collection whose ID matches the one provided in the
+        route parameters. If found, the details of the collection are returned
+        as a GetCollectionDTO object. If not found, a 404 Not Found response is
+        triggered.
+
+        Searches for a collection with the specified ID in the database, and if
+        not found, throws a NotFoundException. It then calculates the total
+        number of NFTs (Non-Fungible Tokens) minted from this collection and
+        returns the collection details, including the percentage of NFTs minted
+        and its minting schedule, encapsulated in a GetCollectionDTO object.
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Collection ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Collection entity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCollectionDTO'
+        '404':
+          description: Collection with provided ID was not found
+      tags: *ref_2
+  /api/v1/core-api/withdraw/request:
+    get:
+      operationId: WithdrawController_prepareWithdraw
+      summary: ''
+      description: >-
+        Prepares a withdrawal for the authenticated user.
+
+        This method is responsible for preparing a withdrawal request. It first
+        fetches the user's wallet address. Then, it validates the specified NFT
+        against the user and calculates the withdrawal fee in both USD and
+        Ethereum (ETH). The function returns these fee estimates.
+      parameters:
+        - name: nftId
+          required: true
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrepareWithdrawResponseDTO'
+      tags: &ref_3
+        - Withdraw Controller
+  /api/v1/core-api/withdraw/confirm:
+    post:
+      operationId: WithdrawController_withdraw
+      summary: ''
+      description: >-
+        Confirms and processes the withdrawal for the authenticated user.
+
+        This method processes the actual withdrawal action. It retrieves the
+        user's wallet address and then leverages the prepareWithdraw method to
+        get fee estimates. After validating the specified NFT and generating a
+        transaction ID, it establishes a database transaction. Within this
+        transaction, it saves the withdrawal information and updates the NFT
+        entity with the withdrawal details. The method concludes by returning
+        the calculated fees and the transaction ID.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WithdrawBodyDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WithdrawResponseDTO'
+      tags: *ref_3
+  /api/v1/core-api/ipfs/file-storage/preview-video:
+    get:
+      operationId: ProxyController_getPreviewVideo
+      summary: ''
+      description: >-
+        Sends a specific video file stored in the static directory as a
+        response.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags: &ref_4
+        - IPFS Controller
+  /api/v1/core-api/ipfs/file-storage/{tokenId}:
+    get:
+      operationId: ProxyController_getMP4Json
+      summary: ''
+      description: >-
+        Retrieves JSON data related to an MP4 file identified by a token ID.
+
+        1. This method normalizes the provided tokenId by ensuring it has a
+        minimum length of 4 characters, padding with zeros if necessary.
+
+        2. It then constructs a JSON object containing:
+         - A URL pointing to an animation video.
+         - A brief description of the Superlotl collection.
+         - A direct image link to a preview gif.
+         - A formatted name representing the specific Superlotl based on the normalized token ID.
+      parameters:
+        - name: tokenId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags: *ref_4
+  /api/v1/core-api/ipfs/{tokenId}:
+    get:
+      operationId: ProxyController_getIPFSLink
+      summary: ''
+      description: >-
+        Obtains an IPFS link (InterPlanetary File System link) for a given token
+        ID.
+
+        1. This method first checks if the reveal date for an NFT (Non-Fungible
+        Token) has passed using the nftsService.checkNftRevealDate().
+
+        2. If the reveal date hasn't passed, it generates a random link.
+
+        3. If the date has passed, it retrieves the Content Identifier (CID) for
+        the given tokenId and attempts to fetch the associated IPFS
+        (InterPlanetary File System) hash from Pinata.
+
+        4. If no CID is found or if the data retrieval from Pinata fails, it
+        generates a random link.
+
+        5. Finally, it returns an IPFS link using the retrieved IPFS hash.
+      parameters:
+        - name: tokenId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags: *ref_4
+info:
+  title: niftables-backend
+  description: Backend for Superlotls project
+  version: 0.0.1
+  contact: {}
+tags: []
+servers: []
+components:
+  securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+      description: |2-
+
+              API available only for users authorized on web site:
+              
+              https://niftables-frontend-git-develop-igorverhusha.vercel.app/
+
+              Authorization flow goes through old backend
+  schemas:
+    ExchangeRequestDto:
+      type: object
+      properties:
+        amount:
+          type: string
+        currency:
+          type: string
+      required:
+        - amount
+        - currency
+    ExchangeResponseDTO:
+      type: object
+      properties:
+        amount:
+          type: string
+        currencyFrom:
+          type: string
+        currencyTo:
+          type: string
+      required:
+        - amount
+        - currencyFrom
+        - currencyTo
+    CollectionDTO:
+      type: object
+      properties:
+        id:
+          type: number
+        address:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - address
+        - name
+    WithdrawalNftDTO:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - CREATED
+            - FEE_PAID
+            - SENT_TO_FIREBLOCKS
+            - WITHDRAWN
+            - FAILED
+            - INVALID_USER_FEE_PAID
+      required:
+        - status
+    GetNftDTO:
+      type: object
+      properties:
+        id:
+          type: number
+        tokenId:
+          type: string
+        imageUrl:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        collection:
+          $ref: '#/components/schemas/CollectionDTO'
+        revealIn:
+          format: date-time
+          type: string
+          nullable: true
+        createdAt:
+          format: date-time
+          type: string
+        lastSaleEth:
+          type: number
+        lastSaleUsd:
+          type: number
+        description:
+          type: string
+          nullable: true
+        storage:
+          type: string
+          enum: &ref_5
+            - PLATFORM
+            - WALLET
+        withdrawal:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/WithdrawalNftDTO'
+      required:
+        - id
+        - tokenId
+        - imageUrl
+        - name
+        - collection
+        - revealIn
+        - createdAt
+        - lastSaleEth
+        - lastSaleUsd
+        - description
+        - storage
+        - withdrawal
+    GetListNftsResponseDTO:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/GetNftDTO'
+      required:
+        - items
+    OwnerDTO:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        image:
+          type: string
+      required:
+        - id
+        - username
+        - image
+    GetNftByIdResponseDTO:
+      type: object
+      properties:
+        id:
+          type: number
+        tokenId:
+          type: string
+        imageUrl:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        collection:
+          $ref: '#/components/schemas/CollectionDTO'
+        revealIn:
+          format: date-time
+          type: string
+          nullable: true
+        createdAt:
+          format: date-time
+          type: string
+        lastSaleEth:
+          type: number
+        lastSaleUsd:
+          type: number
+        description:
+          type: string
+          nullable: true
+        storage:
+          type: string
+          enum: *ref_5
+        withdrawal:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/WithdrawalNftDTO'
+        owner:
+          $ref: '#/components/schemas/OwnerDTO'
+        rarityRank:
+          type: number
+          nullable: true
+        contractAddress:
+          type: string
+          nullable: true
+        creatorFee:
+          type: number
+        traits:
+          type: object
+          nullable: true
+      required:
+        - id
+        - tokenId
+        - imageUrl
+        - name
+        - collection
+        - revealIn
+        - createdAt
+        - lastSaleEth
+        - lastSaleUsd
+        - description
+        - storage
+        - withdrawal
+        - owner
+        - rarityRank
+        - contractAddress
+        - creatorFee
+        - traits
+    GetMintStatusResponseDTO:
+      type: object
+      properties:
+        stageName:
+          type: string
+          nullable: true
+        canMint:
+          type: boolean
+        limit:
+          type: number
+        stageType:
+          type: object
+      required:
+        - stageName
+        - canMint
+        - limit
+        - stageType
+    PreparePaymentPriceDTO:
+      type: object
+      properties:
+        eth:
+          type: string
+        usd:
+          type: string
+      required:
+        - eth
+        - usd
+    PreparePaymentFeeDTO:
+      type: object
+      properties:
+        ethFee:
+          type: string
+        usdFee:
+          type: string
+      required:
+        - ethFee
+        - usdFee
+    PreparePaymentResponseDTO:
+      type: object
+      properties:
+        price:
+          $ref: '#/components/schemas/PreparePaymentPriceDTO'
+        availableAmount:
+          type: number
+          description: Amount of NFT available for buying
+        ethPrice:
+          type: string
+          description: Current ETH price
+        fee:
+          description: Fee amount for buy operation in ETH and USD
+          allOf:
+            - $ref: '#/components/schemas/PreparePaymentFeeDTO'
+        priceNftInEth:
+          type: string
+      required:
+        - price
+        - availableAmount
+        - ethPrice
+        - fee
+        - priceNftInEth
+    RequestPaymentRequestDTO:
+      type: object
+      properties:
+        address:
+          type: string
+        amount:
+          type: number
+          description: Amount of requested NFT's
+        paymentType:
+          type: string
+          enum:
+            - CARD
+            - WALLET
+      required:
+        - address
+        - amount
+        - paymentType
+    RequestPaymentResponseDTO:
+      type: object
+      properties:
+        availableAmount:
+          type: number
+        transactionId:
+          type: string
+        amount:
+          type: string
+        tx:
+          type: array
+          items:
+            type: string
+      required:
+        - availableAmount
+        - transactionId
+        - amount
+        - tx
+    ConfirmPaymentRequestDTO:
+      type: object
+      properties:
+        transactionId:
+          type: string
+      required:
+        - transactionId
+    ConfirmPaymentResponseDTO:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        success:
+          type: boolean
+      required:
+        - transactionId
+        - success
+    RejectPaymentRequestDTO:
+      type: object
+      properties:
+        transactionId:
+          type: string
+      required:
+        - transactionId
+    RejectPaymentResponseDTO:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        success:
+          type: boolean
+      required:
+        - transactionId
+        - success
+    GetSignatureRequestDto:
+      type: object
+      properties:
+        originalUrl:
+          type: string
+          description: Original URL to convert
+      required:
+        - originalUrl
+    GetSignatureResponseDto:
+      type: object
+      properties:
+        signature:
+          type: string
+      required:
+        - signature
+    SocialNetworkDTO:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - DISCORD
+            - TWITTER
+            - INSTAGRAM
+        url:
+          type: string
+      required:
+        - type
+        - url
+    MintScheduleDTO:
+      type: object
+      properties:
+        stageName:
+          type: string
+        time:
+          format: date-time
+          type: string
+        priceEth:
+          type: number
+        priceUsd:
+          type: number
+      required:
+        - stageName
+        - time
+        - priceEth
+        - priceUsd
+    GetCollectionDTO:
+      type: object
+      properties:
+        id:
+          type: number
+        address:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+        previewUrl:
+          type: string
+        createdBy:
+          type: string
+        total:
+          type: number
+        totalMinted:
+          type: number
+        percentageMinted:
+          type: number
+        tags:
+          type: array
+          items:
+            type: string
+        socialNetworks:
+          type: array
+          items:
+            $ref: '#/components/schemas/SocialNetworkDTO'
+        mintSchedule:
+          type: array
+          items:
+            $ref: '#/components/schemas/MintScheduleDTO'
+      required:
+        - id
+        - address
+        - name
+        - description
+        - imageUrl
+        - previewUrl
+        - createdBy
+        - total
+        - totalMinted
+        - percentageMinted
+        - tags
+        - socialNetworks
+        - mintSchedule
+    GetCollectionsResponseDTO:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/GetCollectionDTO'
+      required:
+        - items
+    PrepareWithdrawResponseDTO:
+      type: object
+      properties:
+        ethFee:
+          type: string
+        usdFee:
+          type: string
+      required:
+        - ethFee
+        - usdFee
+    WithdrawBodyDTO:
+      type: object
+      properties:
+        nftId:
+          type: string
+      required:
+        - nftId
+    WithdrawResponseDTO:
+      type: object
+      properties:
+        ethFee:
+          type: string
+        usdFee:
+          type: string
+        transactionId:
+          type: string
+      required:
+        - ethFee
+        - usdFee
+        - transactionId

@@ -1,0 +1,2051 @@
+openapi: 3.0.0
+info:
+  title: niftables-backend
+  description: Backend for Superlotls project
+  version: 0.0.1
+  contact: {}
+servers: []
+tags:
+  - name: Auth Controller
+    x-displayName: Auth Controller
+  - name: Profile Controller
+    x-displayName: Profile Controller
+  - name: Rates Controller
+    x-displayName: Rates Controller
+  - name: NFTs Controller
+    x-displayName: NFTs Controller
+  - name: Payments Controller
+    x-displayName: Payments Controller
+  - name: Moonpay Controller
+    x-displayName: Moonpay Controller
+  - name: Collections controller
+    x-displayName: Collections controller
+  - name: Withdraw Controller
+    x-displayName: Withdraw Controller
+  - name: IPFS Controller
+    x-displayName: IPFS Controller
+paths:
+  /api/v1/auth/sign-up:
+    post:
+      operationId: AuthController_register
+      summary: ''
+      description: >-
+        This method is responsible for registering a new user in the system.
+
+        1. It first checks the availability of the provided email and username.
+        If either the email or username is already taken, it will throw an
+        error.
+
+        2. If both the email and username are available, it proceeds to create
+        the user in the system.
+
+        3. Upon successful user creation, it sends an email (probably containing
+        a confirmation code) to the newly registered user.
+
+        4. The method concludes by returning a SignUpResponseDTO object, which
+        encapsulates user registration details.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignUpRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignUpResponseDTO'
+        '409':
+          description: User with provided email already exists
+      tags:
+        - Auth Controller
+  /api/v1/auth/email/confirm:
+    post:
+      operationId: AuthController_confirmEmail
+      summary: ''
+      description: >-
+        This method allows users to confirm their email addresses by providing
+        an email confirmation code.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmEmailRequestDTO'
+      responses:
+        '200':
+          description: ''
+        '400':
+          description: Invalid code
+      tags:
+        - Auth Controller
+  /api/v1/auth/sign-in:
+    post:
+      operationId: AuthController_loginUser
+      summary: ''
+      description: >-
+        This method allows users to log into the system using their credentials.
+
+        1. It starts by retrieving the user based on the provided email or
+        username. If the user doesn't exist, an error is thrown.
+
+        2. If the user exists, it validates the user's entrance, potentially
+        verifying a two-factor authentication (TFA) code.
+
+        3. It then checks the validity of the provided password against the
+        stored password and its associated salt. If the password doesn't match,
+        an error is thrown.
+
+        4. If the validation passes, it generates an access token using JWT for
+        the user.
+
+        5. The method then returns a SignInResponseDTO object, containing the
+        user details and the generated authentication tokens.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignInRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SignInResponseDTO'
+        '400':
+          description: No user with provided data or incorrect password
+        '401':
+          description: 2FA enabled
+        '403':
+          description: Email is not confirmed
+      tags:
+        - Auth Controller
+  /api/v1/auth/email/request-code:
+    post:
+      operationId: AuthController_requestCode
+      summary: ''
+      description: >-
+        This method sends a confirmation code to the user's email to confirm
+        their email address.
+
+        1. Any past code requests associated with the provided email are updated
+        to ensure they can't be reused.
+
+        2. The user associated with the provided email is retrieved. If no user
+        exists with the given email, an error is thrown.
+
+        3. An email is then sent to the user containing a link, and possibly a
+        code, based on the specified template and email type.
+
+        4. The method ends by returning a RequestCodeResponseDTO object, which
+        contains the date when the code was requested.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestCodeRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestCodeResponseDTO'
+      tags:
+        - Auth Controller
+  /api/v1/auth/password/request-recovery:
+    post:
+      operationId: AuthController_requestPasswordRecovery
+      summary: ''
+      description: >-
+        This method sends a recovery code to the user's email for password
+        recovery purposes.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestCodeRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestCodeResponseDTO'
+      tags:
+        - Auth Controller
+  /api/v1/auth/password/recovery:
+    post:
+      operationId: AuthController_passwordRecovery
+      summary: ''
+      description: >-
+        This method allows users to recover their password using a provided
+        recovery code.
+
+        1. It first checks the provided recovery code for validity. If the code
+        is invalid or expired, an error is thrown.
+
+        2. If the code is valid, the user's password is encrypted and updated in
+        the database.
+
+        3. Past code requests, if any, are then updated to prevent them from
+        being used again.
+
+        4. The method concludes by returning a PasswordRecoveryResponseDTO
+        object, indicating the operation's status.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordRecoveryRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PasswordRecoveryResponseDTO'
+        '400':
+          description: Invalid confirmation code
+      tags:
+        - Auth Controller
+  /api/v1/auth/2fa/activate:
+    post:
+      operationId: AuthController_activate2FA
+      summary: ''
+      description: >-
+        This method is for users who want to activate 2-factor authentication
+        for added security.
+
+        1. It validates the provided 2FA token against the given secret.
+
+        2. If the validation succeeds, the user's record is updated to store the
+        2FA secret and set their authentication type to 2FA.
+
+        3. The method then returns an Activate2FAResponseDTO object, signaling
+        successful 2FA activation.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Activate2FARequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Activate2FAResponseDTO'
+        '401':
+          description: Incorrect 2FA code
+      tags:
+        - Auth Controller
+  /api/v1/auth/2fa/deactivate:
+    post:
+      operationId: AuthController_deactivate2FA
+      summary: ''
+      description: >-
+        This method allows users to deactivate their previously activated
+        2-factor authentication.
+
+        1. It retrieves the user's details from the database.
+
+        2. The provided 2FA token is validated against the user's stored 2FA
+        secret. If it's invalid, an error is thrown.
+
+        3. If the token is valid, the user's record is updated to nullify the
+        2FA secret and set their authentication type to none.
+
+        4. The method concludes by returning a Deactivate2FAResponseDTO object,
+        indicating the successful deactivation of 2FA.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Deactivate2FARequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deactivate2FAResponseDTO'
+        '401':
+          description: Incorrect 2FA code
+      tags:
+        - Auth Controller
+  /api/v1/auth/wallet:
+    post:
+      operationId: AuthController_authWithWallet
+      summary: ''
+      description: >-
+        This method allows users to authenticate using their wallet.
+
+        1. The nonce previously stored is verified with the one provided in the
+        WalletRequestDTO to ensure the integrity of the connection request.
+
+        2. It checks if a user with the given wallet address exists. If not, it
+        creates a new user.
+
+        3. A JSON web token (JWT) is then generated for the user, ensuring they
+        are properly authenticated.
+
+        4. The method concludes by returning a WalletSignInResponseDTO object,
+        containing user details and the generated authentication tokens.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WalletRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WalletSignInResponseDTO'
+        '400':
+          description: Invalid request fields
+        '403':
+          description: No confirmation nonce
+        '422':
+          description: Incorrect wallet signature or message
+      tags:
+        - Auth Controller
+  /api/v1/auth/nonce:
+    get:
+      operationId: AuthController_getNonce
+      summary: ''
+      description: >-
+        This method provides a nonce, a random one-time number, for certain
+        authentication purposes.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - Auth Controller
+  /api/v1/auth/profile/me:
+    get:
+      operationId: ProfileController_getMe
+      summary: ''
+      description: >-
+        Allows authenticated users to change their passwords. After verifying
+        the user's credentials, it updates the user's password in the database.
+
+        Fetches a user's data, including their settings, from the database.
+        Additionally, it retrieves associated user groups based on the user's
+        wallet address. The combined data is then returned as a GetMeResponseDTO
+        object.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMeResponseDTO'
+        '401':
+          description: Unauthorized
+      tags:
+        - Profile Controller
+      security:
+        - bearer: []
+  /api/v1/auth/profile/change-password:
+    post:
+      operationId: ProfileController_changePassword
+      summary: ''
+      description: >-
+        Allows authenticated users to change their passwords. After verifying
+        the user's credentials, it updates the user's password in the database.
+
+        After fetching the user's details using their userId, it verifies the
+        provided current password. If validated, the user's password is changed
+        to the new one, and a new JWT access token is generated and returned
+        encapsulated in a ChangePasswordResponseDTO object.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangePasswordResponseDTO'
+        '400':
+          description: Invalid user password
+        '401':
+          description: Unauthorized
+      tags:
+        - Profile Controller
+      security:
+        - bearer: []
+  /api/v1/auth/profile/email/change:
+    post:
+      operationId: ProfileController_requestEmailChange
+      summary: ''
+      description: >-
+        Allows authenticated users to request a change in their email. It
+        initializes the email change request which might involve sending an
+        email verification or other related processes.
+
+        Retrieves the user's details using their userId and then validates the
+        provided current password. If successful, the email address is updated
+        in the database and a confirmation email is sent to the new email
+        address. Finally, a ChangeEmailResponseDTO object is returned indicating
+        the operation's status.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeEmailRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChangeEmailResponseDTO'
+        '401':
+          description: Unauthorized
+      tags:
+        - Profile Controller
+      security:
+        - bearer: []
+  /api/v1/auth/profile/email/set:
+    post:
+      operationId: ProfileController_setEmail
+      summary: ''
+      description: >-
+        This method enables authenticated users to set or update their email
+        addresses. Useful in scenarios where the user hasn't set an email during
+        registration or wants to change it.
+
+        Validates the provided email to ensure it's not taken, then sends an
+        email to the provided address likely for confirmation. Updates the
+        user's password, email, and other related fields in the database.
+        Finally, it returns a status indicating the email was successfully set,
+        encapsulated in a SetEmailResponseDTO object.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetEmailRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SetEmailResponseDTO'
+        '409':
+          description: User with provided email already exists
+      tags:
+        - Profile Controller
+  /api/v1/auth/profile:
+    put:
+      operationId: ProfileController_updateUserData
+      summary: ''
+      description: >-
+        Protected by the JwtAuthGuard, this method allows users to update their
+        profile details. It can also handle the uploading of multiple files,
+        likely used for profile images or other media.
+
+        Allows users to update their personal details and settings. If a new
+        image or file is provided, it uploads the file and updates the user's
+        database record with the new file's path. Also handles user settings as
+        a special case, ensuring they are updated correctly. Finally, it returns
+        the updated user's details as a GetMeResponseDTO object.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMeResponseDTO'
+        '401':
+          description: Unauthorized
+      tags:
+        - Profile Controller
+      security:
+        - bearer: []
+  /api/v1/auth/profile/wallet:
+    post:
+      operationId: ProfileController_connectWallet
+      summary: ''
+      description: >-
+        Allows authenticated users to connect their wallets. This might involve
+        authenticating a cryptocurrency or digital wallet for the user profile.
+
+        Verifies the validity of the provided nonce and checks if the wallet
+        address is available. Once validated, it updates the user's database
+        record with the provided wallet address and its provider. It then
+        returns a message indicating successful wallet connection encapsulated
+        in a ConnectWalletResponseDTO object.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConnectWalletRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectWalletResponseDTO'
+        '400':
+          description: ''
+      tags:
+        - Profile Controller
+  /api/v1/auth/profile/banner:
+    delete:
+      operationId: ProfileController_deleteBannerImage
+      summary: ''
+      description: >-
+        Protected by the JwtAuthGuard, this method lets users delete their
+        banner image, probably used in their profile or dashboard.
+
+        Deletes the user's banner image by updating the database record to set
+        the banner image to null. Returns a status indicating successful banner
+        image deletion encapsulated in a DeleteUserBannerResponseDTO object.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteUserBannerResponseDTO'
+      tags:
+        - Profile Controller
+  /api/v1/auth/profile/whitelist:
+    post:
+      operationId: ProfileController_uploadWhitelist
+      summary: ''
+      description: >-
+        Allows the uploading of a whitelist, likely a list of approved or
+        recognized items (e.g., email addresses, domains, or IP addresses). The
+        provided groupId could be used to categorize or label the whitelist.
+
+        Parses the provided CSV file to extract wallet addresses. It then cleans
+        up the database by removing any outdated or redundant entries related to
+        the given group ID. Afterward, it prepares the new whitelist data and
+        saves it into the database. Each address from the CSV is associated with
+        the provided group ID during the save operation.
+      parameters: []
+      responses:
+        '201':
+          description: ''
+      tags:
+        - Profile Controller
+  /api/v1/core-api/rates/exchange:
+    post:
+      operationId: RatesController_exchange
+      summary: ''
+      description: >-
+        Handles currency exchange-related operations, particularly concerning
+        Ethereum (ETH) to US Dollar (USD) conversions. (rates from
+        coinmarketcup)
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExchangeRequestDto'
+      responses:
+        '200':
+          description: USD amount after converting
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExchangeResponseDTO'
+        '500':
+          description: Have to provide amount for converting
+      tags:
+        - Rates Controller
+  /api/v1/core-api/nfts:
+    get:
+      operationId: NftsController_getListNfts
+      summary: ''
+      description: >-
+        An authenticated user can fetch a list of NFTs (Non-Fungible Tokens)
+        based on specified query parameters.
+
+        1. Fetches a list of NFTs (Non-Fungible Tokens) for the specified user
+        based on the given sort order and storage filter.
+
+        2. The method checks the reveal date for the metadata associated with
+        the NFTs.
+      parameters:
+        - name: sort
+          required: true
+          in: query
+          schema:
+            default: ASC
+            enum:
+              - ASC
+              - DESC
+            type: string
+        - name: storage
+          required: false
+          in: query
+          schema:
+            enum:
+              - PLATFORM
+              - WALLET
+            type: string
+      responses:
+        '200':
+          description: Array of NFT entities
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetListNftsResponseDTO'
+      tags:
+        - NFTs Controller
+  /api/v1/core-api/nfts/{id}:
+    get:
+      operationId: NftsController_getNftById
+      summary: ''
+      description: >-
+        Fetches the details of a specific NFT based on the provided identifier
+        (id).
+
+        1. Retrieves details for a specific NFT based on the provided identifier
+        (id).
+
+        2. If the NFT is not found, a NotFoundException is thrown.
+
+        3. The method also fetches details about the owner of the NFT and checks
+        the metadata reveal date for the NFT.
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: NFT ID
+          schema:
+            type: number
+      responses:
+        '200':
+          description: NFT entity with owner information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetNftByIdResponseDTO'
+        '404':
+          description: NFT with provided ID was not found
+      tags:
+        - NFTs Controller
+  /api/v1/core-api/payments/mint-status:
+    get:
+      operationId: PaymentsController_getMintStatus
+      summary: ''
+      description: >-
+        Retrieves the mint status, potentially taking into account the user's ID
+        and associated user groups.
+
+        This method checks the minting status at the current time. It verifies
+        whether all items are sold out. If they are, it returns the sold-out
+        status. If not, it determines the current minting stage. For public
+        minting stages, it provides a default minting limit. If the stage isn't
+        public or if there's no associated group ID, it indicates that minting
+        is not currently allowed. For other stages and valid group IDs, it
+        checks the minting time window for the associated group and calculates
+        the minting limit based on that group's configuration.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetMintStatusResponseDTO'
+      tags:
+        - Payments Controller
+  /api/v1/core-api/payments/prepare:
+    get:
+      operationId: PaymentsController_preparePayment
+      summary: ''
+      description: >-
+        Get NFT price in ETH and USD for current user, available for buying
+        amount and precalculates fee amount for buying.
+
+        The method first checks if the user is eligible to mint based on their
+        ID and group ID. If minting is not possible, it throws an error. If
+        minting is allowed, it fetches the price details for the specific group
+        or falls back to public sale rates. It then determines the user's
+        previous minting activities to calculate the number of NFTs they can
+        still mint. The method returns details such as available NFTs for
+        minting, current prices in both USD and ETH, and any associated fees.
+      parameters: []
+      responses:
+        '200':
+          description: Price for NFT, available amount, ETH price and fees
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreparePaymentResponseDTO'
+        '404':
+          description: >-
+            User does's not have payments or price group entity for
+            {user.groupId} does's not exist
+        '422':
+          description: User can't buy more NFT's for his group
+      tags:
+        - Payments Controller
+  /api/v1/core-api/payments/request:
+    post:
+      operationId: PaymentsController_requestPayment
+      summary: ''
+      description: >-
+        Initiates a NFT payment request with provided details such as address,
+        amount, and type of payment. The user's ID and associated user groups
+        may also be considered.
+
+        1. Checks the number of NFTs already minted and ensures that the total
+        NFTs minted, including the current request, don't exceed a specific
+        threshold.
+
+        2. Calculates the total cost for the requested NFTs.
+
+        3. Initiates a transaction and inserts it into the payments repository
+        with a "pending" status.
+
+        4. Returns details such as available NFTs after the current request,
+        transaction ID, and total amount.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestPaymentRequestDTO'
+      responses:
+        '200':
+          description: >-
+            Transaction ID and price for full amount of requested NFT's
+            including fees
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RequestPaymentResponseDTO'
+        '404':
+          description: >-
+            User does's not have payments or price group entity for
+            {user.groupId} does's not exist
+        '422':
+          description: User can't buy more NFT's for his group
+      tags:
+        - Payments Controller
+  /api/v1/core-api/payments/confirm:
+    post:
+      operationId: PaymentsController_confirmPayment
+      summary: ''
+      description: >-
+        Finalizes a NFT payment that has been previously set up by confirming
+        the associated transaction. The action takes the user's ID and a
+        specific transaction ID into account.
+
+        1. Verifies the existence of a user's transaction.
+
+        2. Updates the payment status to "approved".
+
+        3. Returns the transaction ID and a success indicator.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmPaymentRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfirmPaymentResponseDTO'
+        '404':
+          description: User does's not have transaction with provided ID
+      tags:
+        - Payments Controller
+  /api/v1/core-api/payments/reject:
+    post:
+      operationId: PaymentsController_rejectPayment
+      summary: ''
+      description: >-
+        Cancels a NFT payment that has been previously set up by rejecting the
+        associated transaction. The action is based on the user's ID and a
+        specific transaction ID.
+
+        1. Verifies the existence of a user's transaction.
+
+        2. Updates the payment status to "failed".
+
+        3. Returns the transaction ID and a success indicator.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RejectPaymentRequestDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RejectPaymentResponseDTO'
+        '404':
+          description: User does's not have transaction with provided ID
+      tags:
+        - Payments Controller
+  /api/v1/core-api/moonpay/signature:
+    post:
+      operationId: SharedMoonpayController_getSignature
+      summary: ''
+      description: >-
+        Generates a signature for the provided originalUrl.
+
+        1. This method uses the crypto library to create a HMAC (Hash-based
+        Message Authentication Code) with the SHA256 hash function. It uses the
+        MOONPAY.SECRET_KEY as the secret key for the HMAC.
+
+        2. It then updates the HMAC with the search part of the provided
+        originalUrl (i.e., the query string).
+
+        3. Finally, it computes the HMAC digest in the Base64 format.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetSignatureRequestDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetSignatureResponseDto'
+      tags:
+        - Moonpay Controller
+  /api/v1/core-api/collections:
+    get:
+      operationId: CollectionsController_getCollections
+      summary: ''
+      description: >-
+        Retrieves multiple collections based on the provided query parameters.
+        The nature of the query might dictate things like pagination or
+        filtering. Once the collections are fetched, they are returned as a
+        GetCollectionsResponseDTO object.
+
+        Retrieves multiple collections from the database, sorted based on the
+        createdAt attribute in the order specified in the query. For each
+        collection, it calculates the total number of NFTs minted and returns a
+        list of collection details, each including the percentage of NFTs minted
+        and its minting schedule. The resulting list is wrapped in a
+        GetCollectionsResponseDTO object.
+      parameters:
+        - name: sort
+          required: true
+          in: query
+          schema:
+            default: ASC
+            enum:
+              - ASC
+              - DESC
+            type: string
+      responses:
+        '200':
+          description: List of collection entitys
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCollectionsResponseDTO'
+      tags:
+        - Collections controller
+  /api/v1/core-api/collections/{id}:
+    get:
+      operationId: CollectionsController_getCollectionById
+      summary: ''
+      description: >-
+        Fetches a single collection whose ID matches the one provided in the
+        route parameters. If found, the details of the collection are returned
+        as a GetCollectionDTO object. If not found, a 404 Not Found response is
+        triggered.
+
+        Searches for a collection with the specified ID in the database, and if
+        not found, throws a NotFoundException. It then calculates the total
+        number of NFTs (Non-Fungible Tokens) minted from this collection and
+        returns the collection details, including the percentage of NFTs minted
+        and its minting schedule, encapsulated in a GetCollectionDTO object.
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Collection ID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Collection entity
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetCollectionDTO'
+        '404':
+          description: Collection with provided ID was not found
+      tags:
+        - Collections controller
+  /api/v1/core-api/withdraw/request:
+    get:
+      operationId: WithdrawController_prepareWithdraw
+      summary: ''
+      description: >-
+        Prepares a withdrawal for the authenticated user.
+
+        This method is responsible for preparing a withdrawal request. It first
+        fetches the user's wallet address. Then, it validates the specified NFT
+        against the user and calculates the withdrawal fee in both USD and
+        Ethereum (ETH). The function returns these fee estimates.
+      parameters:
+        - name: nftId
+          required: true
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrepareWithdrawResponseDTO'
+      tags:
+        - Withdraw Controller
+  /api/v1/core-api/withdraw/confirm:
+    post:
+      operationId: WithdrawController_withdraw
+      summary: ''
+      description: >-
+        Confirms and processes the withdrawal for the authenticated user.
+
+        This method processes the actual withdrawal action. It retrieves the
+        user's wallet address and then leverages the prepareWithdraw method to
+        get fee estimates. After validating the specified NFT and generating a
+        transaction ID, it establishes a database transaction. Within this
+        transaction, it saves the withdrawal information and updates the NFT
+        entity with the withdrawal details. The method concludes by returning
+        the calculated fees and the transaction ID.
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WithdrawBodyDTO'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WithdrawResponseDTO'
+      tags:
+        - Withdraw Controller
+  /api/v1/core-api/ipfs/file-storage/preview-video:
+    get:
+      operationId: ProxyController_getPreviewVideo
+      summary: ''
+      description: >-
+        Sends a specific video file stored in the static directory as a
+        response.
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - IPFS Controller
+  /api/v1/core-api/ipfs/file-storage/{tokenId}:
+    get:
+      operationId: ProxyController_getMP4Json
+      summary: ''
+      description: >-
+        Retrieves JSON data related to an MP4 file identified by a token ID.
+
+        1. This method normalizes the provided tokenId by ensuring it has a
+        minimum length of 4 characters, padding with zeros if necessary.
+
+        2. It then constructs a JSON object containing:
+         - A URL pointing to an animation video.
+         - A brief description of the Superlotl collection.
+         - A direct image link to a preview gif.
+         - A formatted name representing the specific Superlotl based on the normalized token ID.
+      parameters:
+        - name: tokenId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - IPFS Controller
+  /api/v1/core-api/ipfs/{tokenId}:
+    get:
+      operationId: ProxyController_getIPFSLink
+      summary: ''
+      description: >-
+        Obtains an IPFS link (InterPlanetary File System link) for a given token
+        ID.
+
+        1. This method first checks if the reveal date for an NFT (Non-Fungible
+        Token) has passed using the nftsService.checkNftRevealDate().
+
+        2. If the reveal date hasn't passed, it generates a random link.
+
+        3. If the date has passed, it retrieves the Content Identifier (CID) for
+        the given tokenId and attempts to fetch the associated IPFS
+        (InterPlanetary File System) hash from Pinata.
+
+        4. If no CID is found or if the data retrieval from Pinata fails, it
+        generates a random link.
+
+        5. Finally, it returns an IPFS link using the retrieved IPFS hash.
+      parameters:
+        - name: tokenId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+      tags:
+        - IPFS Controller
+components:
+  securitySchemes:
+    bearer:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+      description: |2-
+
+              API available only for users authorized on web site:
+              
+              https://niftables-frontend-git-develop-igorverhusha.vercel.app/
+
+              Authorization flow goes through old backend
+  schemas:
+    SignUpRequestDTO:
+      type: object
+      properties:
+        email:
+          type: string
+          description: User email
+        password:
+          type: string
+          description: User password
+        username:
+          type: string
+          description: User name
+      required:
+        - email
+        - password
+        - username
+    SignUpResponseUserDTO:
+      type: object
+      properties:
+        role:
+          type: string
+          enum:
+            - user
+            - admin
+          description: User role
+        userName:
+          type: string
+          description: User name
+        email:
+          type: string
+          description: User email
+        projectId:
+          type: number
+          description: Project id
+        createdAt:
+          type: string
+          description: Registration date
+        updatedAt:
+          type: string
+          description: Last profile modification date
+        isEmailConfirmed:
+          type: boolean
+          description: Confirmed email or not (false after registration)
+          default: false
+      required:
+        - role
+        - userName
+        - email
+        - projectId
+        - createdAt
+        - updatedAt
+        - isEmailConfirmed
+    SignUpResponseDTO:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/SignUpResponseUserDTO'
+      required:
+        - user
+    ConfirmEmailRequestDTO:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Confirmation code
+      required:
+        - code
+    SignInRequestDTO:
+      type: object
+      properties:
+        emailOrUsername:
+          type: string
+          description: User email or user name
+        password:
+          type: string
+          description: User password
+        tfaCode:
+          type: string
+          description: 2FA code
+      required:
+        - emailOrUsername
+        - password
+        - tfaCode
+    SignInAuthResponseDTO:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token
+        refreshToken:
+          type: string
+          description: JWT refresh token
+      required:
+        - accessToken
+        - refreshToken
+    SignInResponseDTO:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/SignUpResponseUserDTO'
+        auth:
+          $ref: '#/components/schemas/SignInAuthResponseDTO'
+      required:
+        - user
+        - auth
+    RequestCodeRequestDTO:
+      type: object
+      properties:
+        email:
+          type: string
+          description: User email where should send code
+      required:
+        - email
+    RequestCodeResponseDTO:
+      type: object
+      properties:
+        date:
+          type: string
+          description: Date when next request available
+      required:
+        - date
+    PasswordRecoveryRequestDTO:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Recovery code
+        password:
+          type: string
+          description: New password
+      required:
+        - code
+        - password
+    PasswordRecoveryResponseDTO:
+      type: object
+      properties:
+        status:
+          type: number
+          description: OK
+      required:
+        - status
+    Activate2FARequestDTO:
+      type: object
+      properties:
+        secret:
+          type: string
+          description: Secret key for authentificator
+        tfaCode:
+          type: string
+          description: 2FA code
+      required:
+        - secret
+        - tfaCode
+    Activate2FAResponseDTO:
+      type: object
+      properties:
+        status:
+          type: number
+          description: OK
+      required:
+        - status
+    Deactivate2FARequestDTO:
+      type: object
+      properties:
+        tfaCode:
+          type: string
+          description: 2FA code
+      required:
+        - tfaCode
+    Deactivate2FAResponseDTO:
+      type: object
+      properties:
+        status:
+          type: number
+          description: OK
+      required:
+        - status
+    WalletRequestDTO:
+      type: object
+      properties:
+        message:
+          type: string
+          description: SIWE message
+        signature:
+          type: string
+          description: SIWE signature
+        walletProvider:
+          type: string
+          description: Use wallet provider
+          enum:
+            - metamask
+            - coinbase
+            - walletConnect
+      required:
+        - message
+        - signature
+        - walletProvider
+    WalletUserResponseDTO:
+      type: object
+      properties:
+        email:
+          type: string
+        userName:
+          type: string
+        walletAddress:
+          type: string
+      required:
+        - email
+        - userName
+        - walletAddress
+    WalletAuthResponseDTO:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+      required:
+        - accessToken
+        - refreshToken
+    WalletSignInResponseDTO:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/WalletUserResponseDTO'
+        auth:
+          $ref: '#/components/schemas/WalletAuthResponseDTO'
+      required:
+        - user
+        - auth
+    SettingsItem:
+      type: object
+      properties:
+        email:
+          type: boolean
+        platform:
+          type: boolean
+      required:
+        - email
+        - platform
+    UserSettingsDTO:
+      type: object
+      properties:
+        notifyOnBidActivity:
+          description: Should nofify user on bid activity
+          allOf:
+            - $ref: '#/components/schemas/SettingsItem'
+        notifyOnDrops:
+          description: Should nofify user on drops
+          allOf:
+            - $ref: '#/components/schemas/SettingsItem'
+        notifyOnOutBid:
+          description: Should nofify user on out bid
+          allOf:
+            - $ref: '#/components/schemas/SettingsItem'
+        notifyOnPacks:
+          description: Should nofify user on packs
+          allOf:
+            - $ref: '#/components/schemas/SettingsItem'
+        notifyOnRevealNft:
+          description: Should nofify user on reveal nft
+          allOf:
+            - $ref: '#/components/schemas/SettingsItem'
+        notifyOnSubscriptions:
+          description: Should nofify user on subscription
+          allOf:
+            - $ref: '#/components/schemas/SettingsItem'
+        notifyOnSuccessfulPurchase:
+          description: Should nofify user on purchase
+          allOf:
+            - $ref: '#/components/schemas/SettingsItem'
+      required:
+        - notifyOnBidActivity
+        - notifyOnDrops
+        - notifyOnOutBid
+        - notifyOnPacks
+        - notifyOnRevealNft
+        - notifyOnSubscriptions
+        - notifyOnSuccessfulPurchase
+    UserGroupsDTO:
+      type: object
+      properties:
+        groupId:
+          type: string
+        priceUsd:
+          type: number
+        amount:
+          type: number
+        fromDateTime:
+          type: string
+        toDateTime:
+          type: string
+        name:
+          type: string
+      required:
+        - groupId
+        - priceUsd
+        - amount
+        - fromDateTime
+        - toDateTime
+        - name
+    GetMeResponseDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          description: User ID
+        email:
+          type: string
+          description: User email
+        isEmailConfirmed:
+          type: boolean
+          description: Did user activate email or not
+        role:
+          type: string
+          description: User Role
+          enum:
+            - user
+            - admin
+        userName:
+          type: string
+          description: User name
+        projectId:
+          type: number
+          description: User project ID
+        authType:
+          type: string
+          description: Authentication type
+          enum:
+            - none
+            - 2fa
+        walletAddress:
+          type: string
+          description: User wallet address
+        walletProvider:
+          type: string
+          description: User wallet provider
+        image:
+          type: string
+          description: User image
+        twoFaSecretKey:
+          type: string
+        bannerImage:
+          type: string
+          description: User banner imae
+        bio:
+          type: string
+          description: User bio
+        displayName:
+          type: string
+          description: Displayed name
+        passwordChangedAt:
+          type: string
+          description: Last password change
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+        userSettings:
+          $ref: '#/components/schemas/UserSettingsDTO'
+        userGroups:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserGroupsDTO'
+      required:
+        - id
+        - email
+        - isEmailConfirmed
+        - role
+        - userName
+        - projectId
+        - authType
+        - walletAddress
+        - walletProvider
+        - image
+        - twoFaSecretKey
+        - bannerImage
+        - bio
+        - displayName
+        - passwordChangedAt
+        - createdAt
+        - updatedAt
+        - userSettings
+        - userGroups
+    ChangePasswordRequestDTO:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+          description: Current user password
+        newPassword:
+          type: string
+          description: New user password
+      required:
+        - currentPassword
+        - newPassword
+    ChangePasswordAuthDTO:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: Access token
+        refreshToken:
+          type: string
+          description: Refresh token
+      required:
+        - accessToken
+        - refreshToken
+    ChangePasswordResponseDTO:
+      type: object
+      properties:
+        auth:
+          $ref: '#/components/schemas/ChangePasswordAuthDTO'
+      required:
+        - auth
+    ChangeEmailRequestDTO:
+      type: object
+      properties:
+        currentPassword:
+          type: string
+          description: Current user password
+        newEmail:
+          type: string
+          description: New email
+      required:
+        - currentPassword
+        - newEmail
+    ChangeEmailResponseDTO:
+      type: object
+      properties:
+        status:
+          type: number
+          description: Ok
+      required:
+        - status
+    SetEmailRequestDTO:
+      type: object
+      properties:
+        email:
+          type: string
+        password:
+          type: string
+      required:
+        - email
+        - password
+    SetEmailResponseDTO:
+      type: object
+      properties:
+        status:
+          type: number
+      required:
+        - status
+    UpdateUserRequestDTO:
+      type: object
+      properties:
+        displayName:
+          type: string
+          description: Displayed name
+        bio:
+          type: string
+          description: User bio description
+        userName:
+          type: string
+        userSettings:
+          type: object
+      required:
+        - displayName
+        - bio
+        - userName
+        - userSettings
+    ConnectWalletRequestDTO:
+      type: object
+      properties:
+        message:
+          type: string
+          description: SIWE message
+        signature:
+          type: string
+          description: SIWE signature
+        walletProvider:
+          type: object
+          description: Use wallet provider
+      required:
+        - message
+        - signature
+        - walletProvider
+    ConnectWalletResponseDTO:
+      type: object
+      properties:
+        message:
+          type: string
+      required:
+        - message
+    DeleteUserBannerResponseDTO:
+      type: object
+      properties:
+        status:
+          type: number
+      required:
+        - status
+    ExchangeRequestDto:
+      type: object
+      properties:
+        amount:
+          type: string
+        currency:
+          type: string
+      required:
+        - amount
+        - currency
+    ExchangeResponseDTO:
+      type: object
+      properties:
+        amount:
+          type: string
+        currencyFrom:
+          type: string
+        currencyTo:
+          type: string
+      required:
+        - amount
+        - currencyFrom
+        - currencyTo
+    CollectionDTO:
+      type: object
+      properties:
+        id:
+          type: number
+        address:
+          type: string
+        name:
+          type: string
+      required:
+        - id
+        - address
+        - name
+    WithdrawalNftDTO:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - CREATED
+            - FEE_PAID
+            - SENT_TO_FIREBLOCKS
+            - WITHDRAWN
+            - FAILED
+            - INVALID_USER_FEE_PAID
+      required:
+        - status
+    GetNftDTO:
+      type: object
+      properties:
+        id:
+          type: number
+        tokenId:
+          type: string
+        imageUrl:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        collection:
+          $ref: '#/components/schemas/CollectionDTO'
+        revealIn:
+          format: date-time
+          type: string
+          nullable: true
+        createdAt:
+          format: date-time
+          type: string
+        lastSaleEth:
+          type: number
+        lastSaleUsd:
+          type: number
+        description:
+          type: string
+          nullable: true
+        storage:
+          type: string
+          enum:
+            - PLATFORM
+            - WALLET
+        withdrawal:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/WithdrawalNftDTO'
+      required:
+        - id
+        - tokenId
+        - imageUrl
+        - name
+        - collection
+        - revealIn
+        - createdAt
+        - lastSaleEth
+        - lastSaleUsd
+        - description
+        - storage
+        - withdrawal
+    GetListNftsResponseDTO:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/GetNftDTO'
+      required:
+        - items
+    OwnerDTO:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        image:
+          type: string
+      required:
+        - id
+        - username
+        - image
+    GetNftByIdResponseDTO:
+      type: object
+      properties:
+        id:
+          type: number
+        tokenId:
+          type: string
+        imageUrl:
+          type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        collection:
+          $ref: '#/components/schemas/CollectionDTO'
+        revealIn:
+          format: date-time
+          type: string
+          nullable: true
+        createdAt:
+          format: date-time
+          type: string
+        lastSaleEth:
+          type: number
+        lastSaleUsd:
+          type: number
+        description:
+          type: string
+          nullable: true
+        storage:
+          type: string
+          enum:
+            - PLATFORM
+            - WALLET
+        withdrawal:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/WithdrawalNftDTO'
+        owner:
+          $ref: '#/components/schemas/OwnerDTO'
+        rarityRank:
+          type: number
+          nullable: true
+        contractAddress:
+          type: string
+          nullable: true
+        creatorFee:
+          type: number
+        traits:
+          type: object
+          nullable: true
+      required:
+        - id
+        - tokenId
+        - imageUrl
+        - name
+        - collection
+        - revealIn
+        - createdAt
+        - lastSaleEth
+        - lastSaleUsd
+        - description
+        - storage
+        - withdrawal
+        - owner
+        - rarityRank
+        - contractAddress
+        - creatorFee
+        - traits
+    GetMintStatusResponseDTO:
+      type: object
+      properties:
+        stageName:
+          type: string
+          nullable: true
+        canMint:
+          type: boolean
+        limit:
+          type: number
+        stageType:
+          type: object
+      required:
+        - stageName
+        - canMint
+        - limit
+        - stageType
+    PreparePaymentPriceDTO:
+      type: object
+      properties:
+        eth:
+          type: string
+        usd:
+          type: string
+      required:
+        - eth
+        - usd
+    PreparePaymentFeeDTO:
+      type: object
+      properties:
+        ethFee:
+          type: string
+        usdFee:
+          type: string
+      required:
+        - ethFee
+        - usdFee
+    PreparePaymentResponseDTO:
+      type: object
+      properties:
+        price:
+          $ref: '#/components/schemas/PreparePaymentPriceDTO'
+        availableAmount:
+          type: number
+          description: Amount of NFT available for buying
+        ethPrice:
+          type: string
+          description: Current ETH price
+        fee:
+          description: Fee amount for buy operation in ETH and USD
+          allOf:
+            - $ref: '#/components/schemas/PreparePaymentFeeDTO'
+        priceNftInEth:
+          type: string
+      required:
+        - price
+        - availableAmount
+        - ethPrice
+        - fee
+        - priceNftInEth
+    RequestPaymentRequestDTO:
+      type: object
+      properties:
+        address:
+          type: string
+        amount:
+          type: number
+          description: Amount of requested NFT's
+        paymentType:
+          type: string
+          enum:
+            - CARD
+            - WALLET
+      required:
+        - address
+        - amount
+        - paymentType
+    RequestPaymentResponseDTO:
+      type: object
+      properties:
+        availableAmount:
+          type: number
+        transactionId:
+          type: string
+        amount:
+          type: string
+        tx:
+          type: array
+          items:
+            type: string
+      required:
+        - availableAmount
+        - transactionId
+        - amount
+        - tx
+    ConfirmPaymentRequestDTO:
+      type: object
+      properties:
+        transactionId:
+          type: string
+      required:
+        - transactionId
+    ConfirmPaymentResponseDTO:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        success:
+          type: boolean
+      required:
+        - transactionId
+        - success
+    RejectPaymentRequestDTO:
+      type: object
+      properties:
+        transactionId:
+          type: string
+      required:
+        - transactionId
+    RejectPaymentResponseDTO:
+      type: object
+      properties:
+        transactionId:
+          type: string
+        success:
+          type: boolean
+      required:
+        - transactionId
+        - success
+    GetSignatureRequestDto:
+      type: object
+      properties:
+        originalUrl:
+          type: string
+          description: Original URL to convert
+      required:
+        - originalUrl
+    GetSignatureResponseDto:
+      type: object
+      properties:
+        signature:
+          type: string
+      required:
+        - signature
+    SocialNetworkDTO:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - DISCORD
+            - TWITTER
+            - INSTAGRAM
+        url:
+          type: string
+      required:
+        - type
+        - url
+    MintScheduleDTO:
+      type: object
+      properties:
+        stageName:
+          type: string
+        time:
+          format: date-time
+          type: string
+        priceEth:
+          type: number
+        priceUsd:
+          type: number
+      required:
+        - stageName
+        - time
+        - priceEth
+        - priceUsd
+    GetCollectionDTO:
+      type: object
+      properties:
+        id:
+          type: number
+        address:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        imageUrl:
+          type: string
+        previewUrl:
+          type: string
+        createdBy:
+          type: string
+        total:
+          type: number
+        totalMinted:
+          type: number
+        percentageMinted:
+          type: number
+        tags:
+          type: array
+          items:
+            type: string
+        socialNetworks:
+          type: array
+          items:
+            $ref: '#/components/schemas/SocialNetworkDTO'
+        mintSchedule:
+          type: array
+          items:
+            $ref: '#/components/schemas/MintScheduleDTO'
+      required:
+        - id
+        - address
+        - name
+        - description
+        - imageUrl
+        - previewUrl
+        - createdBy
+        - total
+        - totalMinted
+        - percentageMinted
+        - tags
+        - socialNetworks
+        - mintSchedule
+    GetCollectionsResponseDTO:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/GetCollectionDTO'
+      required:
+        - items
+    PrepareWithdrawResponseDTO:
+      type: object
+      properties:
+        ethFee:
+          type: string
+        usdFee:
+          type: string
+      required:
+        - ethFee
+        - usdFee
+    WithdrawBodyDTO:
+      type: object
+      properties:
+        nftId:
+          type: string
+      required:
+        - nftId
+    WithdrawResponseDTO:
+      type: object
+      properties:
+        ethFee:
+          type: string
+        usdFee:
+          type: string
+        transactionId:
+          type: string
+      required:
+        - ethFee
+        - usdFee
+        - transactionId
+x-tagGroups:
+  - name: auth
+    tags:
+      - Auth Controller
+      - Profile Controller
+  - name: core
+    tags:
+      - Rates Controller
+      - NFTs Controller
+      - Payments Controller
+      - Moonpay Controller
+      - Collections controller
+      - Withdraw Controller
+      - IPFS Controller
