@@ -1,8 +1,8 @@
-## **Suprtlotls Indexer**
+## **Supertlotls Indexer**
 
 ---
 
-The "Suprtlotls Indexer" is an intricate backend system, primarily aimed at the indexing and processing of Non-Fungible Tokens (NFTs) within the Ethereum network. Leveraging the power and efficiency of the Go programming language, this project interacts directly with the Ethereum blockchain by utilizing the Etherscan API.
+The "Supertlotls Indexer" is an intricate backend system, primarily aimed at the indexing and processing of Non-Fungible Tokens (NFTs) within the Ethereum network. Leveraging the power and efficiency of the Go programming language, this project interacts directly with the Ethereum blockchain by utilizing the Etherscan API.
 
 
 ### **System Description and Technical Details**
