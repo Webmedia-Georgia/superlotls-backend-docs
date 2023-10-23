@@ -15,22 +15,36 @@
 2. **Wallet Management**:
     - For users who don't already possess a digital wallet, the system is designed to automatically generate one, courtesy of Fireblocks, a digital asset security platform.
 
-3. **Auth Module**:
-    - **User Authentication & Authorization**: It employs JWT (JSON Web Tokens) for authentication and maintains user sessions.
-    - **Crypto Wallet Interaction**: Users can link their existing digital wallets.
-    - **Wallet Creation**: As mentioned, for users without a wallet, the module can generate one, ensuring a wider user base can engage with NFT transactions.
+3. **User Authentication & Authorization**:
+    - It employs JWT (JSON Web Tokens) for authentication and maintains user sessions.
 
-4. **Core Module**:
-    - **Payment Processing**: It can process payments, accommodating both cryptocurrency and fiat, ensuring flexibility for end-users.
-    - **Withdrawal Management**: Users can initiate and process withdrawals from their account.
-    - **NFT Statistics**: Provides detailed statistics on NFTs, crucial for users and marketplace admins alike.
-    - **IPFS & Pinata Integration**: For decentralized storage and ensuring NFT data permanence, the system seamlessly interacts with the IPFS (InterPlanetary File System) API via Pinata, a decentralized data storage service.
+4. **Crypto Wallet Interaction**:
+   - Users can link their existing digital wallets.
 
-5. **Real-time Currency Rates**:
-    - To keep users informed and ensure transparent transactions, the backend fetches real-time currency rates using the Coinmarketcap API, a reliable source for cryptocurrency market cap rankings and more.
+5. **Wallet Creation**:
+   - As mentioned, for users without a wallet, the module can generate one, ensuring a wider user base can engage with NFT transactions.
 
-6. **Code Quality & Maintenance**:
-    - The project's `package.json` also suggests rigorous code quality checks with ESLint and Prettier. Moreover, the testing suite with Jest ensures the robustness of the system. Lint-staged further ensures that only linted code is committed, maintaining code quality.
+6. **Payment Processing**:
+   - It can process payments, accommodating both cryptocurrency and fiat, ensuring flexibility for end-users.
+
+7. **Withdrawal Management**:
+   - Users can initiate and process withdrawals from their account.
+
+8. **NFT Statistics**:
+   - Provides detailed statistics on NFTs, crucial for users and marketplace admins alike.
+
+9. **IPFS & Pinata Integration**:
+   - For decentralized storage and ensuring NFT data permanence, the system seamlessly interacts with the IPFS (InterPlanetary File System) API via Pinata, a decentralized data storage service.
+
+10. **Real-time Currency Rates**:
+     - To keep users informed and ensure transparent transactions, the backend fetches real-time currency rates using the Coinmarketcap API, a reliable source for cryptocurrency market cap rankings and more.
+
+11. **Code Quality & Maintenance**:
+     - The project's `package.json` also suggests rigorous code quality checks with ESLint and Prettier. Moreover, the testing suite with Jest ensures the robustness of the system. Lint-staged further ensures that only linted code is committed, maintaining code quality.
+
+---
+
+
 
 ---
 
