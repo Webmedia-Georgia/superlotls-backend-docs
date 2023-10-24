@@ -18,12 +18,12 @@
     * [Payment Processing](#payment-processing)
     * [Withdrawal Management](#withdrawal-management)
     * [NFT Statistics](#nft-statistics)
-    * [IPFS & Pinata Integration](#ipfs---pinata-integration)
+    * [IPFS & Pinata Integration](#ipfs-pinata-integration)
 - [Database Schema Overview](#database-schema-overview)
     * [1. NFT Minting](#1-nft-minting)
         + [Purpose](#purpose)
         + [Tables](#tables)
-    * [2. User Authentication & Authorization (Auth)](#2-user-authentication---authorization--auth-)
+    * [2. User Authentication & Authorization (Auth)](#2-user-authentication-and-authorization)
         + [Purpose](#purpose-1)
         + [Tables](#tables-1)
     * [3. Payment Processing](#3-payment-processing)
@@ -34,19 +34,19 @@
         + [Tables](#tables-3)
 - [Api documentation](#api-documentation)
 - [Indexer documentation](#indexer-documentation)
-- [**AWS Deployment Architecture**](#--aws-deployment-architecture--)
-    * [**1. Core API**](#--1-core-api--)
-    * [**2. Auth API**](#--2-auth-api--)
-    * [**3. Chain Indexer**](#--3-chain-indexer--)
-    * [**Database Infrastructure**:](#--database-infrastructure---)
-- [**Setup & Building Instructions**](#--setup---building-instructions--)
-    * [**1. Prerequisites**](#--1-prerequisites--)
-    * [**2. Installation**](#--2-installation--)
-    * [**3. Building**](#--3-building--)
-    * [**4. Running the Project**](#--4-running-the-project--)
-    * [**5. Testing**](#--5-testing--)
-    * [**6. Linting**](#--6-linting--)
-    * [**Additional Scripts**](#--additional-scripts--)
+- [**AWS Deployment Architecture**](#aws-deployment-architecture)
+    * [**1. Core API**](#1-core-api)
+    * [**2. Auth API**](#2-auth-api)
+    * [**3. Chain Indexer**](#3-chain-indexer)
+    * [**Database Infrastructure**:](#database-infrastructure)
+- [**Setup & Building Instructions**](#setup---building-instructions)
+    * [**1. Prerequisites**](#1-prerequisites)
+    * [**2. Installation**](#2-installation)
+    * [**3. Building**](#3-building)
+    * [**4. Running the Project**](#4-running-the-project)
+    * [**5. Testing**](#5-testing)
+    * [**6. Linting**](#6-linting)
+    * [**Additional Scripts**](#additional-scripts)
 
 
 ## Technical Features and Modules
@@ -96,7 +96,7 @@ The Auth and Core Modules together form the backbone of our application, providi
 
 The Auth Module is an integral part of our application, responsible for user authentication, authorization, and crypto wallet management. This module ensures the security of user data and transactions while providing a seamless experience for both new and existing users.
 
-### User Authentication & Authorization
+### User Authentication And Authorization
 
 #### JWT (JSON Web Tokens)
 
@@ -144,7 +144,7 @@ The NFT Statistics feature provides detailed insights into NFTs, benefiting both
 1. **Comprehensive Data**: Users can access statistics such as NFT transaction volume, popular NFT categories, and more.
 2. **Market Insights**: Marketplace administrators can use these statistics to make informed decisions and improve the user experience.
 
-### IPFS & Pinata Integration
+### IPFS And Pinata Integration
 
 To ensure the permanence and decentralization of NFT data, our application seamlessly integrates with the IPFS (InterPlanetary File System) API via Pinata, a decentralized data storage service.
 
@@ -180,7 +180,7 @@ This component plays a pivotal role in consolidating NFT data from a multitude o
 - `collection`: Classifies NFTs into distinct collections.
 - `payment`: Manages payment information related to NFT transactions.
 
-### 2. User Authentication & Authorization (Auth)
+### 2. User Authentication and Authorization
 
 #### Purpose
 This module is responsible for ascertaining user identities and granting appropriate permissions. Furthermore, it provides a structured framework for defining user groups and configuring specific settings such as NFT pricing for different groups.
