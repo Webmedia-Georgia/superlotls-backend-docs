@@ -190,6 +190,78 @@ Indexer documentation can be found by following this link:
 
 ---
 
+Of course, here's the provided content structured in markdown:
+
+---
+
+## **AWS Deployment Architecture**
+
+In this AWS environment, we've intricately woven the capabilities of various AWS services, majorly centering on the Amazon Elastic Container Service (ECS) for container orchestration. Let's delve deeper into this technical breakdown:
+Follow this link to see deployment diagram:
+https://webmedia-georgia.github.io/superlotls-backend-docs/aws.html
+
+
+### **1. Core API**
+
+- **Deployment Platform**:
+    - Deployed on **Amazon ECS**—the managed service supporting Docker containers, enabling easy execution of applications on a cluster of Amazon EC2 instances.
+
+- **Load Balancing**:
+    - Incorporates **Amazon Elastic Load Balancing (ELB)**, specifically the **Application Load Balancer (ALB)** variant to uniformly distribute incoming HTTP/HTTPS traffic across ECS tasks.
+
+- **Service Auto Scaling**:
+    - Enabled with target tracking scaling policies, accommodating up to 10 tasks under heightened load, monitored through CloudWatch metrics.
+
+- **Networking**:
+    - Operates in a VPC with security groups allowing only essential inbound traffic, ensuring robust security.
+
+### **2. Auth API**
+
+- **Deployment Platform**:
+    - Also orchestrated through **Amazon ECS**.
+
+- **Load Balancing**:
+    - Employs an **Application Load Balancer (ALB)**, managing authentication request traffic for optimal routing and minimized latency.
+
+- **Service Auto Scaling**:
+    - Equipped with auto-scaling to spawn up to 10 ECS tasks based on demand, with oversight from Amazon CloudWatch.
+
+- **Networking**:
+    - Resides within the same VPC as Core API, fortified by security groups that regulate inbound traffic.
+
+### **3. Chain Indexer**
+
+- **Deployment Platform**:
+    - Consistently deployed on **Amazon ECS**.
+
+- **Load Balancing**:
+    - Distinctly does not incorporate ELB, catering to its specific operational paradigm.
+
+- **Instance Configuration**:
+    - Runs as a singleton task, ensuring sequential and consistent operations.
+
+- **Networking**:
+    - While it bypasses load balancing, it still functions within the VPC, safeguarded by pertinent security groups.
+
+### **Database Infrastructure**:
+
+All services pivot around a central **PostgreSQL database**:
+
+- **Hosting**:
+    - The database finds its home on **Amazon RDS**, offering features like automated backups, snapshots, host replacement, and resizing.
+
+- **Configuration**:
+    - Positioned within a Multi-AZ setup for high availability. AWS Secrets Manager handles database credentials securely.
+
+- **Networking**:
+    - Located in a private subnet in the VPC, shielding it from direct public internet access.
+
+---
+
+In essence, this architecture capitalizes on the robust offerings of AWS, especially with ECS at its core for container management and RDS for seamless database operations, ensuring high availability, scalability, and streamlined operations.
+
+---
+
 ## **Setup & Building Instructions**
 
 ### **1. Prerequisites**
