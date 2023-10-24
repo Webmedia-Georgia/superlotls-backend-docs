@@ -2,6 +2,50 @@
 
 ---
 
+- [**Niftables-Backend Project**](#--niftables-backend-project--)
+- [NestJs Modules](#nestjs-modules)
+- [Auth Module](#auth-module)
+    * [User Authentication & Authorization](#user-authentication---authorization)
+        + [JWT (JSON Web Tokens)](#jwt--json-web-tokens-)
+    * [Crypto Wallet Interaction](#crypto-wallet-interaction)
+        + [Linking Existing Digital Wallets](#linking-existing-digital-wallets)
+        + [Wallet Creation](#wallet-creation)
+- [Core Module](#core-module)
+    * [Payment Processing](#payment-processing)
+    * [Withdrawal Management](#withdrawal-management)
+    * [NFT Statistics](#nft-statistics)
+    * [IPFS & Pinata Integration](#ipfs---pinata-integration)
+- [Database Schema Overview](#database-schema-overview)
+    * [1. NFT Minting](#1-nft-minting)
+        + [Purpose](#purpose)
+        + [Tables](#tables)
+    * [2. User Authentication & Authorization (Auth)](#2-user-authentication---authorization--auth-)
+        + [Purpose](#purpose-1)
+        + [Tables](#tables-1)
+    * [3. Payment Processing](#3-payment-processing)
+        + [Purpose](#purpose-2)
+        + [Tables](#tables-2)
+    * [4. Chain Indexing](#4-chain-indexing)
+        + [Purpose](#purpose-3)
+        + [Tables](#tables-3)
+- [Api documentation](#api-documentation)
+- [Indexer documentation](#indexer-documentation)
+- [**AWS Deployment Architecture**](#--aws-deployment-architecture--)
+    * [**1. Core API**](#--1-core-api--)
+    * [**2. Auth API**](#--2-auth-api--)
+    * [**3. Chain Indexer**](#--3-chain-indexer--)
+    * [**Database Infrastructure**:](#--database-infrastructure---)
+- [**Setup & Building Instructions**](#--setup---building-instructions--)
+    * [**1. Prerequisites**](#--1-prerequisites--)
+    * [**2. Installation**](#--2-installation--)
+    * [**3. Building**](#--3-building--)
+    * [**4. Running the Project**](#--4-running-the-project--)
+    * [**5. Testing**](#--5-testing--)
+    * [**6. Linting**](#--6-linting--)
+    * [**Additional Scripts**](#--additional-scripts--)
+
+---
+
 **Name**: niftables-backend  
 **Version**: 0.7.a  
 **Description**: The Niftables Backend project, developed using the powerful NestJS framework, serves as a comprehensive backend solution tailored for the evolving NFT (Non-fungible Token) marketplaces. It incorporates a myriad of functionalities to ensure seamless operations, right from user authentication to final NFT transactions.
