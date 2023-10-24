@@ -2,7 +2,11 @@
 
 ---
 
-- [**Niftables-Backend Project**](#--niftables-backend-project--)
+**Name**: niftables-backend  
+**Version**: 0.7.a  
+**Description**: The Niftables Backend project, developed using the powerful NestJS framework, serves as a comprehensive backend solution tailored for the evolving NFT (Non-fungible Token) marketplaces. It incorporates a myriad of functionalities to ensure seamless operations, right from user authentication to final NFT transactions.
+
+- [Technical Features and Modules](#technical-features-and-modules)
 - [NestJs Modules](#nestjs-modules)
 - [Auth Module](#auth-module)
     * [User Authentication & Authorization](#user-authentication---authorization)
@@ -44,13 +48,8 @@
     * [**6. Linting**](#--6-linting--)
     * [**Additional Scripts**](#--additional-scripts--)
 
----
 
-**Name**: niftables-backend  
-**Version**: 0.7.a  
-**Description**: The Niftables Backend project, developed using the powerful NestJS framework, serves as a comprehensive backend solution tailored for the evolving NFT (Non-fungible Token) marketplaces. It incorporates a myriad of functionalities to ensure seamless operations, right from user authentication to final NFT transactions.
-
-**Technical Features and Modules:**
+## Technical Features and Modules
 
 1. **Diverse Payment Alternatives**:
     - **Cryptocurrency Payments**: The project harnesses the Ethereum blockchain to enable crypto transactions.
