@@ -111,10 +111,6 @@ To ensure the permanence and decentralization of NFT data, our application seaml
 
 ---
 
-Of course, here's the provided content in markdown format:
-
----
-
 ## Database Schema Overview
 
 Full database structure diagram can be found by following this link:
@@ -187,10 +183,6 @@ https://webmedia-georgia.github.io/superlotls-backend-docs/api.html
 
 Indexer documentation can be found by following this link:
 [Indexer docs](INDEXER.md)
-
----
-
-Of course, here's the provided content structured in markdown:
 
 ---
 
